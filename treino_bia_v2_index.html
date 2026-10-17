@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Treino da Bia</title>
+<style>
+:root {
+  --coral: #ff2d7a; --teal: #ff8cc0; --sun: #ff8cc0; --violet: #b0175c;
+  --bg: #0a0a0c; --surface: #161619; --text: #f7f1f4; --muted: #a39aa0; --border: #2a2a31;
+  --muscle-off: #262630; --warn-bg: #2b1420; --warn-text: #ffb3d1;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; color: var(--text); background: var(--bg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 17px; line-height: 1.5;
+}
+header.hero {
+  background: linear-gradient(135deg, var(--coral), var(--violet) 55%, var(--teal));
+  color: #fff; padding: 28px 20px 40px; border-radius: 0 0 28px 28px; position: relative;
+}
+.hero-inner { max-width: 820px; margin: 0 auto; }
+.hero h1 { margin: 0 0 6px; font-size: 2rem; }
+.hero p { margin: 0; opacity: 0.95; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.chip { background: rgba(255,255,255,0.22); border-radius: 999px; padding: 4px 12px; font-size: 0.9rem; }
+.export-btn { position: static; min-height: 44px; padding: 8px 14px; border-radius: 12px; border: 2px solid var(--coral); background: var(--bg); color: var(--text); font: inherit; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: background .2s, color .2s; }
+.export-btn:hover { background: var(--coral); color: #fff; }
+.hero-tools { position: absolute; top: 16px; right: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.timer-btn::before { content: "⏰ "; }
+.timer-btn { position: static; min-width: 112px; min-height: 40px; padding: 6px 12px; border-radius: 12px; border: 2px solid var(--coral); background: var(--bg); color: var(--text); font: inherit; font-weight: 700; font-size: 1rem; font-variant-numeric: tabular-nums; cursor: pointer; transition: background .2s, color .2s; }
+.timer-btn.running { background: var(--coral); color: #fff; }
+.timer-btn:hover { border-color: #fff; }
+.timer-btn { font-family: 'Courier New', Courier, monospace; font-size: 1.3rem; font-weight: 900; letter-spacing: 3px; color: #ff4f9f; background: repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 3px), #0a0a0c; border: 2px solid #ff4f9f; text-shadow: 0 0 6px rgba(255,79,159,0.9), 0 0 14px rgba(255,79,159,0.5); box-shadow: inset 0 0 12px rgba(255,79,159,0.25), 0 0 12px rgba(255,79,159,0.35); }
+.timer-btn.running { color: #4fe8b8; border-color: #4fe8b8; text-shadow: 0 0 6px rgba(79,232,184,0.9), 0 0 14px rgba(79,232,184,0.5); box-shadow: inset 0 0 12px rgba(79,232,184,0.25), 0 0 12px rgba(79,232,184,0.35); }
+@media (max-width: 560px) { .hero-tools { top: 12px; right: 12px; } }
+@media (max-width: 560px) { .export-btn { top: 12px; right: 12px; font-size: 0.8rem; padding: 6px 10px; } .hero h1 { padding-right: 150px; } }
+main { position: relative; z-index: 1; max-width: 820px; margin: 36px auto 0; padding: 0 16px 48px; }
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; background: var(--surface); padding: 8px; border-radius: 18px; border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+.tabs button {
+  border: 2px solid var(--border); border-radius: 12px; min-height: 52px; background: var(--bg); color: var(--text);
+  font: inherit; font-weight: 700; cursor: pointer; transition: transform .15s, background .2s;
+}
+.tabs button:hover { transform: translateY(-2px); }
+.tabs button[aria-selected="true"] { color: #fff; border-color: transparent; background: linear-gradient(135deg, var(--coral), var(--violet)); box-shadow: 0 6px 16px rgba(255,45,122,0.35); }
+button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+.card { background: var(--surface); border-radius: 20px; padding: 20px; margin-top: 18px; box-shadow: 0 6px 20px rgba(30,27,58,0.08); }
+.day-head { display: grid; grid-template-columns: 1fr 180px; gap: 16px; align-items: center; }
+@media (max-width: 560px) { .day-head { grid-template-columns: 1fr; } }
+.day-head h2 { margin: 0 0 6px; font-size: 1.5rem; }
+.badge { display: inline-block; background: var(--sun); color: #3a2a00; font-weight: 700; border-radius: 999px; padding: 3px 12px; font-size: 0.85rem; margin-bottom: 8px; }
+.info { color: var(--muted); margin: 0; }
+.warn { background: var(--warn-bg); color: var(--warn-text); border-radius: 14px; padding: 12px 14px; margin-top: 14px; font-size: 0.95rem; }
+.body-svg { width: 100%; height: auto; }
+#hl stop:first-child { stop-color: #4fe8b8; }
+#hl stop:last-child { stop-color: #b8ffe3; }
+svg [stroke="var(--coral)"] { stroke: #ffffff; }
+svg > g[fill="var(--muscle-off)"] { fill: rgba(79,232,184,0.35); stroke: rgba(79,232,184,0.35); }
+.anatomy-wrap { position: relative; width: 100%; }
+.anatomy { width: 100%; height: auto; border-radius: 16px; display: block; background: #fff; }
+.zone { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(255,45,122,0.85), rgba(176,23,92,0.55)); box-shadow: 0 0 14px rgba(255,45,122,0.7); pointer-events: none; }
+.exercise { border: 2px solid var(--border); border-radius: 16px; margin-top: 14px; overflow: hidden; transition: border-color .2s; }
+.exercise.done { border-color: var(--teal); }
+.ex-top { display: flex; align-items: center; gap: 12px; padding: 14px; }
+.ex-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+.day-done { display: inline-block; margin-top: 8px; color: var(--teal); font-weight: 700; font-size: 0.95rem; }
+.check {
+  width: 44px; height: 44px; flex: none; border-radius: 50%; border: 2px solid var(--coral);
+  background: var(--bg); cursor: pointer; font-size: 1.2rem; font-weight: 800; color: var(--coral); transition: all .2s;
+}
+.exercise.done .check { background: var(--coral); border-color: var(--coral); color: #fff; }
+.ex-title { flex: 1; min-width: 0; }
+.ex-title h3 { margin: 0; font-size: 1.08rem; }
+.sets { font-size: 0.88rem; color: var(--muted); }
+.toggle {
+  border: 2px solid var(--coral); background: var(--bg); color: var(--text); font: inherit; font-weight: 700;
+  border-radius: 10px; padding: 8px 12px; min-height: 40px; cursor: pointer; white-space: nowrap;
+}
+.details { padding: 0 14px 16px; display: none; }
+.exercise.open .details { display: block; }
+.details ol { padding-left: 20px; margin: 4px 0 10px; }
+.details li { margin-bottom: 4px; }
+.mistake { background: var(--bg); border-left: 4px solid var(--coral); padding: 8px 12px; border-radius: 8px; font-size: 0.95rem; margin-bottom: 12px; }
+.video {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 16px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--coral), var(--violet)); color: #fff; text-decoration: none; font-weight: 700;
+}
+.log { margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
+.stepper { display: flex; align-items: center; border: 2px solid var(--border); border-radius: 12px; overflow: hidden; }
+.stepper button { width: 44px; height: 44px; border: 0; background: var(--bg); color: var(--coral); font-size: 1.3rem; font-weight: 700; cursor: pointer; flex: none; }
+.stepper input { width: 100%; min-width: 0; border: 0; text-align: center; font: inherit; font-size: 1.1rem; font-weight: 700; background: var(--surface); color: var(--text); padding: 6px; }
+.saved { font-size: 0.85rem; color: var(--teal); font-weight: 600; margin-top: 8px; min-height: 1.2em; }
+.card h2.sec { margin: 0 0 6px; font-size: 1.2rem; }
+footer { color: var(--muted); font-size: 0.88rem; text-align: center; margin-top: 28px; }
+[hidden] { display: none !important; }
+@media (max-width: 480px) { .tabs button { font-size: 0.9rem; } .log { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-inner">
+    <h1>Treino da Bia</h1>
+    <p>Hipertrofia · 4 dias por semana · 8 a 12 semanas</p>
+    <div class="chips"><span class="chip">Academia completa</span><span class="chip">Cargas salvas neste aparelho</span></div>
+  </div>
+  <div class="hero-tools">
+  <button id="export" class="export-btn" type="button">⬇ Exportar semana (CSV)</button>
+  <button id="timer" class="timer-btn" type="button" aria-label="Cronômetro de descanso">00:00</button>
+  </div>
+</header>
+
+<main>
+  <nav class="tabs" role="tablist" aria-label="Dias de treino">
+    <button role="tab" data-day="A" aria-selected="true">Dia A</button>
+    <button role="tab" data-day="B" aria-selected="false">Dia B</button>
+    <button role="tab" data-day="C" aria-selected="false">Dia C</button>
+    <button role="tab" data-day="D" aria-selected="false">Dia D</button>
+  </nav>
+
+  <div id="content"></div>
+
+  <section class="card">
+    <h2 class="sec">Cardio e passos</h2>
+    <p class="info">Caminhada diária, com a meta de passos combinada com a Bia. Cardio leve de 20 a 30 minutos, 1 a 2 vezes por semana.</p>
+  </section>
+
+  <footer>Este plano organiza o treino e não substitui avaliação médica ou nutricional.</footer>
+</main>
+
+<script>
+var DAYS = {
+  A: { title: "Costas + Bíceps", groups: ["costas", "biceps"], info: "3 séries por exercício · descanso de 90 a 120 s", warn: null, exercises: [
+    { id: "A1", name: "Puxada alta na polia", sets: "3 × 8–12", steps: ["Sente com as coxas presas no apoio e segure a barra com pegada um pouco mais larga que os ombros.", "Puxe a barra até a altura do peito, levando os cotovelos para baixo e para trás.", "Volte devagar, sem deixar o peso subir de uma vez."], mistake: "Puxar a barra atrás da nuca e balançar o tronco." },
+    { id: "A2", name: "Remada sentada na máquina", sets: "3 × 8–12", steps: ["Sente com o peito apoiado no suporte e segure a empunhadura.", "Puxe em direção ao abdômen, com os cotovelos junto ao corpo.", "Segure 1 segundo e volte devagar."], mistake: "Arredondar as costas ou jogar o corpo para trás." },
+    { id: "A3", name: "Remada unilateral com halter", sets: "3 × 8–12 por lado", steps: ["Apoie uma mão e um joelho no banco, com as costas paralelas ao chão.", "Puxe o halter em direção ao quadril, com o cotovelo perto do corpo.", "Desça até o braço estender por completo."], mistake: "Girar o tronco para ajudar o peso a subir." },
+    { id: "A4", name: "Rosca direta com barra", sets: "3 × 10–12", steps: ["Em pé, segure a barra com as mãos na largura dos ombros.", "Dobre os cotovelos sem mexer os ombros.", "Desça devagar até quase estender os braços."], mistake: "Balançar o corpo para ajudar o movimento." }
+  ]},
+  B: { title: "Quadríceps + Posterior de coxa", groups: ["quadriceps", "posterior"], info: "3 séries por exercício · descanso de 90 a 120 s", warn: null, exercises: [
+    { id: "B1", name: "Agachamento no Smith", sets: "3 × 8–12", steps: ["Pés na largura dos ombros, um pouco à frente da barra.", "Dobre joelhos e quadril até a coxa ficar próxima do paralelo com o chão.", "Mantenha os calcanhares no chão e suba empurrando o chão."], mistake: "Joelhos caindo para dentro ou calcanhares saindo do chão." },
+    { id: "B2", name: "Cadeira extensora", sets: "3 × 10–15", steps: ["Alinhe o joelho com o eixo da máquina.", "Estenda as pernas quase até travar e segure 1 segundo.", "Desça devagar."], mistake: "Usar impulso para levantar o peso." },
+    { id: "B3", name: "Mesa flexora", sets: "3 × 10–12", steps: ["Deite de bruços com a almofada logo acima dos tornozelos.", "Dobre os joelhos levando os calcanhares em direção ao glúteo.", "Desça devagar até as pernas estenderem."], mistake: "Levantar o quadril do banco no final." },
+    { id: "B4", name: "Stiff com halteres", sets: "3 × 10–12", steps: ["Pés na largura do quadril e joelhos levemente dobrados.", "Empurre o quadril para trás com as costas retas e os halteres perto das pernas.", "Suba apertando o glúteo."], mistake: "Costas arredondadas na descida." }
+  ]},
+  C: { title: "Ombros + Tríceps", groups: ["ombros", "triceps"], info: "3 séries por exercício · descanso de 60 a 90 s", warn: "Atenção ao ombro: a Bia relatou dor. Use cargas leves e movimentos controlados, e pare se sentir dor aguda. Nada de carga pesada até a avaliação.", exercises: [
+    { id: "C1", name: "Desenvolvimento na máquina", sets: "3 × 10–12 · carga leve", steps: ["Sente com as costas apoiadas e as empunhaduras na altura dos ombros.", "Empurre para cima sem travar totalmente os cotovelos.", "Desça devagar até a altura dos ombros."], mistake: "Subir o peso com o tronco." },
+    { id: "C2", name: "Elevação lateral com halteres", sets: "3 × 12–15 · carga leve", steps: ["Em pé, braços ao lado do corpo com um halter em cada mão.", "Eleve os braços até a altura dos ombros, com o cotovelo levemente dobrado.", "Desça devagar."], mistake: "Subir acima dos ombros ou balançar o corpo." },
+    { id: "C3", name: "Tríceps na polia com corda", sets: "3 × 10–12", steps: ["Cotovelos colados ao corpo, segurando a corda.", "Estenda os braços para baixo e abra a corda no final.", "Volte devagar."], mistake: "Cotovelos saindo do lugar." },
+    { id: "C4", name: "Tríceps testa com halter", sets: "3 × 10–12 · carga leve", steps: ["Deitada no banco, halter com as duas mãos acima da testa.", "Dobre só os cotovelos, levando o halter em direção à testa.", "Estenda de volta."], mistake: "Abrir os cotovelos para os lados." }
+  ]},
+  D: { title: "Glúteos + Abdômen", groups: ["gluteos", "abdomen"], info: "3 séries por exercício · descanso de 60 a 90 s", warn: null, exercises: [
+    { id: "D1", name: "Elevação pélvica", sets: "3 × 10–12", steps: ["Costas apoiadas no banco, pés no chão e barra sobre o quadril.", "Empurre o quadril para cima apertando o glúteo.", "Segure 1 segundo e desça devagar."], mistake: "Empurrar com a lombar em vez do glúteo." },
+    { id: "D2", name: "Cadeira abdutora", sets: "3 × 12–15", steps: ["Sente com as costas apoiadas e as pernas no apoio.", "Afaste as pernas controlando o movimento.", "Volte devagar."], mistake: "Usar impulso para abrir as pernas." },
+    { id: "D3", name: "Abdominal no solo ou na máquina", sets: "3 × 12–15", steps: ["Deitada, mãos atrás da cabeça sem puxar o pescoço.", "Suba enrolando o tronco.", "Desça devagar."], mistake: "Puxar a cabeça com as mãos." },
+    { id: "D4", name: "Prancha", sets: "3 × 20–40 s", steps: ["Antebraços e pontas dos pés no chão, corpo em linha reta.", "Contraia abdômen e glúteo e mantenha a posição.", "Respire sem prender o ar."], mistake: "Quadril caindo ou subindo demais." }
+  ]}
+};
+
+// Regiões do corpo: id -> grupo. Frente e costas.
+var MUSCLES_FRONT = [
+  { g: "ombros", cx: 64, cy: 100, rx: 15, ry: 13 }, { g: "ombros", cx: 136, cy: 100, rx: 15, ry: 13 },
+  { g: "biceps", cx: 56, cy: 145, rx: 9, ry: 22 }, { g: "biceps", cx: 144, cy: 145, rx: 9, ry: 22 },
+  { g: "abdomen", cx: 100, cy: 180, rx: 19, ry: 34 },
+  { g: "quadriceps", cx: 82, cy: 265, rx: 16, ry: 48 }, { g: "quadriceps", cx: 118, cy: 265, rx: 16, ry: 48 }
+];
+var MUSCLES_BACK = [
+  { g: "costas", cx: 100, cy: 135, rx: 30, ry: 36 },
+  { g: "ombros", cx: 64, cy: 100, rx: 14, ry: 12 }, { g: "ombros", cx: 136, cy: 100, rx: 14, ry: 12 },
+  { g: "triceps", cx: 56, cy: 145, rx: 9, ry: 22 }, { g: "triceps", cx: 144, cy: 145, rx: 9, ry: 22 },
+  { g: "gluteos", cx: 88, cy: 215, rx: 17, ry: 17 }, { g: "gluteos", cx: 112, cy: 215, rx: 17, ry: 17 },
+  { g: "posterior", cx: 82, cy: 265, rx: 15, ry: 46 }, { g: "posterior", cx: 118, cy: 265, rx: 15, ry: 46 }
+];
+
+function figure(list, groups, label) {
+  var s = '<svg viewBox="0 0 200 320" role="img" aria-label="' + label + '">';
+  s += '<circle cx="100" cy="40" r="22" fill="var(--muscle-off)"/>';
+  s += '<rect x="90" y="60" width="20" height="16" rx="6" fill="var(--muscle-off)"/>';
+  s += '<path d="M60 70 Q100 56 140 70 L150 130 L140 200 L120 210 L80 210 L60 200 L50 130 Z" fill="var(--muscle-off)"/>';
+  s += '<rect x="70" y="200" width="24" height="112" rx="10" fill="var(--muscle-off)"/>';
+  s += '<rect x="106" y="200" width="24" height="112" rx="10" fill="var(--muscle-off)"/>';
+  s += '<rect x="42" y="90" width="16" height="110" rx="8" fill="var(--muscle-off)"/>';
+  s += '<rect x="142" y="90" width="16" height="110" rx="8" fill="var(--muscle-off)"/>';
+  list.forEach(function (m) {
+    var on = groups.indexOf(m.g) !== -1;
+    s += '<ellipse cx="' + m.cx + '" cy="' + m.cy + '" rx="' + m.rx + '" ry="' + m.ry + '" fill="' + (on ? 'url(#hl)' : 'transparent') + '" opacity="' + (on ? 0.95 : 0) + '"/>';
+  });
+  s += '</svg>';
+  return s;
+}
+
+var NAMES = { costas: 'Costas', ombros: 'Ombros', biceps: 'Bíceps', triceps: 'Tríceps', abdomen: 'Abdômen', quadriceps: 'Quadríceps', posterior: 'Posterior de coxa', gluteos: 'Glúteos' };
+
+var SHELL = `<g fill="var(--muscle-off)" stroke="var(--border)" stroke-width="1.2">
+  <circle cx="100" cy="38" r="20"/><rect x="92" y="54" width="16" height="16" rx="5"/>
+  <path d="M68 76 Q100 64 132 76 L142 104 L134 150 L126 204 L74 204 L66 150 L58 104 Z"/>
+  <rect x="40" y="82" width="20" height="70" rx="10"/><rect x="140" y="82" width="20" height="70" rx="10"/>
+  <rect x="36" y="150" width="18" height="66" rx="9"/><rect x="146" y="150" width="18" height="66" rx="9"/>
+  <rect x="68" y="196" width="28" height="64" rx="13"/><rect x="104" y="196" width="28" height="64" rx="13"/>
+  <rect x="70" y="256" width="24" height="60" rx="11"/><rect x="106" y="256" width="24" height="60" rx="11"/>
+</g>`;
+
+var SHELL = `<g fill="var(--muscle-off)" stroke="var(--muscle-off)" stroke-linecap="round" stroke-linejoin="round">
+  <ellipse cx="100" cy="30" rx="17" ry="21" stroke="none"/>
+  <rect x="92" y="46" width="16" height="18" rx="6" stroke="none"/>
+  <path d="M90 60 Q100 64 110 60 C126 66 134 76 134 90 C134 118 124 136 124 156 C124 172 136 190 134 208 C128 218 74 218 66 208 C64 190 76 172 76 156 C76 136 66 118 66 90 C66 76 74 66 90 60 Z" stroke="none"/>
+  <line x1="68" y1="86" x2="58" y2="146" stroke-width="17"/><line x1="58" y1="146" x2="50" y2="206" stroke-width="13"/><ellipse cx="46" cy="216" rx="7" ry="11" stroke="none"/>
+  <line x1="132" y1="86" x2="142" y2="146" stroke-width="17"/><line x1="142" y1="146" x2="150" y2="206" stroke-width="13"/><ellipse cx="154" cy="216" rx="7" ry="11" stroke="none"/>
+  <line x1="86" y1="212" x2="86" y2="272" stroke-width="26"/><line x1="86" y1="278" x2="88" y2="316" stroke-width="16"/>
+  <line x1="114" y1="212" x2="114" y2="272" stroke-width="26"/><line x1="114" y1="278" x2="112" y2="316" stroke-width="16"/>
+  <ellipse cx="88" cy="324" rx="10" ry="5" stroke="none"/><ellipse cx="112" cy="324" rx="10" ry="5" stroke="none"/>
+</g>`;
+
+function bodyPart(g, groups, tag, attrs) {
+  var on = groups.indexOf(g) !== -1;
+  return '<' + tag + ' ' + attrs + ' fill="' + (on ? 'url(#hl)' : 'transparent') + '" stroke="' + (on ? 'var(--coral)' : 'var(--border)') + '" stroke-width="1.2" opacity="' + (on ? 1 : 0.6) + '"/>';
+}
+
+function bodyView(parts, groups, label) {
+  return '<svg viewBox="0 0 200 330" role="img" aria-label="' + label + '">' + SHELL +
+    parts.map(function (p) { return bodyPart(p[0], groups, p[1], p[2]); }).join('') + '</svg>';
+}
+
+var ZONES = [
+  ['ombros', 290, 190, 40, 40], ['ombros', 425, 190, 40, 40], ['biceps', 272, 255, 22, 60], ['biceps', 440, 255, 22, 60],
+  ['abdomen', 355, 305, 58, 90], ['quadriceps', 322, 475, 46, 110], ['quadriceps', 395, 475, 46, 110],
+  ['costas', 1080, 260, 120, 150], ['ombros', 1005, 200, 40, 40], ['ombros', 1165, 200, 40, 40],
+  ['triceps', 1000, 290, 22, 70], ['triceps', 1172, 290, 22, 70],
+  ['gluteos', 1055, 385, 50, 50], ['gluteos', 1115, 385, 50, 50],
+  ['posterior', 1050, 495, 40, 110], ['posterior', 1115, 495, 40, 110]
+];
+
+function diagramImg(groups) {
+  var marks = ZONES.filter(function (z) { return groups.indexOf(z[0]) !== -1; }).map(function (z) {
+    var left = ((z[1] - z[3] / 2) / W * 100).toFixed(2);
+    var top = ((z[2] - z[4] / 2) / H * 100).toFixed(2);
+    return '<span class="zone" style="left:' + left + '%;top:' + top + '%;width:' + (z[3] / W * 100).toFixed(2) + '%;height:' + (z[4] / H * 100).toFixed(2) + '%"></span>';
+  }).join('');
+  return '<div class="anatomy-wrap"><img class="anatomy" src="/_blob/b7af9a8153835fea31d23b9ec2bf6d97" alt="Mapa muscular feminino, frente e costas">' + marks + '</div>' +
+    '<p class="info" style="text-align:center;margin-top:10px"><strong>Destaques:</strong> ' + groups.map(function (g) { return NAMES[g]; }).join(', ') + '</p>';
+}
+
+function diagram(groups) {
+  var defs = `<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="hl" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff2d7a"/><stop offset="100%" stop-color="#b0175c"/></linearGradient></defs></svg>`;
+  var front = [
+    ['ombros', 'ellipse', 'cx="58" cy="92" rx="13" ry="12"'], ['ombros', 'ellipse', 'cx="142" cy="92" rx="13" ry="12"'],
+    ['biceps', 'ellipse', 'cx="50" cy="126" rx="8" ry="18"'], ['biceps', 'ellipse', 'cx="150" cy="126" rx="8" ry="18"'],
+    ['abdomen', 'rect', 'x="88" y="134" width="24" height="50" rx="8"'],
+    ['quadriceps', 'ellipse', 'cx="84" cy="228" rx="12" ry="28"'], ['quadriceps', 'ellipse', 'cx="116" cy="228" rx="12" ry="28"']
+  ];
+  var back = [
+    ['costas', 'path', 'd="M70 80 Q100 70 130 80 L132 126 Q100 146 68 126 Z"'],
+    ['ombros', 'ellipse', 'cx="58" cy="92" rx="13" ry="12"'], ['ombros', 'ellipse', 'cx="142" cy="92" rx="13" ry="12"'],
+    ['triceps', 'ellipse', 'cx="50" cy="126" rx="8" ry="18"'], ['triceps', 'ellipse', 'cx="150" cy="126" rx="8" ry="18"'],
+    ['gluteos', 'ellipse', 'cx="86" cy="192" rx="16" ry="12"'], ['gluteos', 'ellipse', 'cx="114" cy="192" rx="16" ry="12"'],
+    ['posterior', 'ellipse', 'cx="84" cy="236" rx="12" ry="28"'], ['posterior', 'ellipse', 'cx="116" cy="236" rx="12" ry="28"']
+  ];
+  var names = groups.map(function (g) { return NAMES[g]; }).join(', ');
+  return defs + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center">' +
+    '<div>' + bodyView(front, groups, 'Vista frontal') + '<div class="info">Frente</div></div>' +
+    '<div>' + bodyView(back, groups, 'Vista de costas') + '<div class="info">Costas</div></div></div>' +
+    '<p class="info" style="text-align:center;margin-top:8px"><strong>Destaques:</strong> ' + names + '</p>';
+}
+
+function diagramOld(groups) {
+  var defs = '<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="hl" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff2d7a"/><stop offset="100%" stop-color="#b0175c"/></linearGradient></defs></svg>';
+  return defs + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center">' +
+    '<div>' + figure(MUSCLES_FRONT, groups, 'Vista frontal') + '<div class="info">Frente</div></div>' +
+    '<div>' + figure(MUSCLES_BACK, groups, 'Vista de costas') + '<div class="info">Costas</div></div></div>';
+}
+
+function diagram(groups) {
+  var defs = `<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="hl" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff2d7a"/><stop offset="100%" stop-color="#b0175c"/></linearGradient></defs></svg>`;
+  var front = [
+    ['ombros', 'circle', 'cx="68" cy="88" r="12"'], ['ombros', 'circle', 'cx="132" cy="88" r="12"'],
+    ['biceps', 'ellipse', 'cx="63" cy="118" rx="7" ry="16"'], ['biceps', 'ellipse', 'cx="137" cy="118" rx="7" ry="16"'],
+    ['abdomen', 'rect', 'x="88" y="152" width="24" height="40" rx="10"'],
+    ['quadriceps', 'ellipse', 'cx="86" cy="240" rx="10" ry="30"'], ['quadriceps', 'ellipse', 'cx="114" cy="240" rx="10" ry="30"']
+  ];
+  var back = [
+    ['costas', 'path', 'd="M80 70 Q100 80 120 70 Q124 120 112 160 Q100 170 88 160 Q76 120 80 70 Z"'],
+    ['ombros', 'circle', 'cx="68" cy="88" r="12"'], ['ombros', 'circle', 'cx="132" cy="88" r="12"'],
+    ['triceps', 'ellipse', 'cx="63" cy="118" rx="7" ry="16"'], ['triceps', 'ellipse', 'cx="137" cy="118" rx="7" ry="16"'],
+    ['gluteos', 'ellipse', 'cx="88" cy="210" rx="15" ry="13"'], ['gluteos', 'ellipse', 'cx="112" cy="210" rx="15" ry="13"'],
+    ['posterior', 'ellipse', 'cx="86" cy="256" rx="9" ry="28"'], ['posterior', 'ellipse', 'cx="114" cy="256" rx="9" ry="28"']
+  ];
+  var names = groups.map(function (g) { return NAMES[g]; }).join(', ');
+  return defs + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center">' +
+    '<div>' + bodyView(front, groups, 'Vista frontal') + '<div class="info">Frente</div></div>' +
+    '<div>' + bodyView(back, groups, 'Vista de costas') + '<div class="info">Costas</div></div></div>' +
+    '<p class="info" style="text-align:center;margin-top:8px"><strong>Destaques:</strong> ' + names + '</p>';
+}
+
+function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function videoUrl(name) { return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(name + ' execução correta'); }
+
+var content = document.getElementById('content');
+var tabs = document.querySelectorAll('.tabs button');
+
+function render(key) {
+  var d = DAYS[key];
+  var h = '<section class="card" data-day="' + key + '"><div class="day-head"><div>';
+  h += '<span class="badge">Dia ' + key + '</span><h2>' + esc(d.title) + '</h2><p class="info">' + esc(d.info) + '</p>';
+  if (d.warn) h += '<div class="warn"><strong>Atenção:</strong> ' + esc(d.warn) + '</div>';
+  h += '<div class="day-done" id="done-' + key + '"></div></div><div>' + diagram(d.groups) + '</div></div>';
+
+  d.exercises.forEach(function (ex) {
+    h += '<article class="exercise" data-ex="' + ex.id + '">';
+    h += '<div class="ex-top"><div class="ex-title"><h3>' + esc(ex.name) + '</h3><div class="sets">' + esc(ex.sets) + '</div></div>';
+    h += '<div class="ex-actions"><button class="toggle" aria-expanded="false" data-toggle="' + ex.id + '">Como fazer</button><button class="check" aria-label="Marcar ' + esc(ex.name) + ' como concluído" data-check="' + ex.id + '">✓</button></div></div>';
+    h += '<div class="details">';
+    h += '<ol>' + ex.steps.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ol>';
+    h += '<p class="mistake"><strong>Erro comum:</strong> ' + esc(ex.mistake) + '</p>';
+    h += '<a class="video" href="' + esc(videoUrl(ex.name)) + '" target="_blank" rel="noopener noreferrer">▶ Ver execução em vídeo</a>';
+    h += '<div class="log">';
+    h += stepper(ex.id, 'carga', 'Carga (kg)', 0.5);
+    h += stepper(ex.id, 'reps', 'Repetições da última série', 1);
+    h += '</div><div class="saved" data-saved="' + ex.id + '"></div></div></article>';
+  });
+  h += '</section>';
+  content.innerHTML = h;
+  bind();
+  updateDay(key);
+}
+
+function updateDay(key) {
+  var d = DAYS[key];
+  var allDone = d.exercises.every(function (ex) {
+    var el = document.querySelector('[data-ex="' + ex.id + '"]');
+    return el && el.classList.contains('done');
+  });
+  var stampKey = 'treino-bia:concluido:' + key;
+  var stamp = null;
+  try { stamp = localStorage.getItem(stampKey); } catch (e) {}
+  if (allDone && !stamp) {
+    stamp = new Date().toLocaleDateString('pt-BR');
+    try { localStorage.setItem(stampKey, stamp); } catch (e) {}
+  } else if (!allDone && stamp) {
+    stamp = null;
+    try { localStorage.removeItem(stampKey); } catch (e) {}
+  }
+  var el = document.getElementById('done-' + key);
+  if (el) el.textContent = stamp ? '✓ Treino concluído em ' + stamp : '';
+  var tab = document.querySelector('.tabs button[data-day="' + key + '"]');
+  if (tab) tab.textContent = 'Dia ' + key + (stamp ? ' ✓' : '');
+}
+
+function stepper(id, field, label, step) {
+  var k = id + '-' + field;
+  return '<div class="field"><label for="' + k + '">' + label + '</label><div class="stepper">' +
+    '<button type="button" data-step="-' + step + '" data-target="' + k + '" aria-label="Diminuir">−</button>' +
+    '<input id="' + k + '" data-key="' + k + '" inputmode="decimal">' +
+    '<button type="button" data-step="' + step + '" data-target="' + k + '" aria-label="Aumentar">+</button></div></div>';
+}
+
+function bind() {
+  document.querySelectorAll('[data-toggle]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var card = b.closest('.exercise');
+      var open = card.classList.toggle('open');
+      b.setAttribute('aria-expanded', open ? 'true' : 'false');
+      b.textContent = open ? 'Fechar' : 'Como fazer';
+    });
+  });
+  document.querySelectorAll('[data-check]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      b.closest('.exercise').classList.toggle('done');
+      updateDay(b.closest('[data-day]').getAttribute('data-day'));
+      try { localStorage.setItem('treino-bia:done:' + b.getAttribute('data-check'), b.closest('.exercise').classList.contains('done') ? '1' : '0'); } catch (e) {}
+    });
+    try { if (localStorage.getItem('treino-bia:done:' + b.getAttribute('data-check')) === '1') b.closest('.exercise').classList.add('done'); } catch (e) {}
+  });
+  document.querySelectorAll('[data-step]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var input = document.getElementById(b.getAttribute('data-target'));
+      var v = parseFloat((input.value || '0').replace(',', '.')) || 0;
+      v = Math.max(0, v + parseFloat(b.getAttribute('data-step')));
+      input.value = String(Math.round(v * 10) / 10);
+      save(input);
+    });
+  });
+  document.querySelectorAll('input[data-key]').forEach(function (input) {
+    try { var s = localStorage.getItem('treino-bia:' + input.getAttribute('data-key')); if (s !== null) input.value = s; } catch (e) {}
+    input.addEventListener('change', function () { save(input); });
+  });
+}
+
+function save(input) {
+  var k = input.getAttribute('data-key');
+  var exId = k.replace(/-(carga|reps)$/, '');
+  var status = document.querySelector('[data-saved="' + exId + '"]');
+  try {
+    localStorage.setItem('treino-bia:' + k, input.value);
+    if (status) status.textContent = 'Registro salvo ✓';
+  } catch (e) {
+    if (status) status.textContent = 'Não foi possível salvar neste navegador';
+  }
+}
+
+function weekRange() {
+  var now = new Date();
+  var start = new Date(now);
+  start.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  var end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  var f = function (d) { return d.toLocaleDateString('pt-BR'); };
+  return f(start) + ' a ' + f(end);
+}
+
+function stored(k) {
+  try { return localStorage.getItem('treino-bia:' + k) || ''; } catch (e) { return ''; }
+}
+
+function buildCsv() {
+  var semana = weekRange();
+  var rows = [['semana', 'dia', 'exercicio', 'carga_kg', 'repeticoes', 'concluido']];
+  Object.keys(DAYS).forEach(function (key) {
+    DAYS[key].exercises.forEach(function (ex) {
+      rows.push([semana, key + ' - ' + DAYS[key].title, ex.name, stored(ex.id + '-carga'), stored(ex.id + '-reps'), stored('done:' + ex.id) === '1' ? 'sim' : 'nao']);
+    });
+  });
+  // BOM para acentos abrirem certo no Excel e no Google Sheets; ';' como separador
+  return '\uFEFF' + rows.map(function (r) {
+    return r.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(';');
+  }).join('\r\n');
+}
+
+var exportBtn = document.getElementById('export');
+exportBtn.addEventListener('click', async function () {
+  var label = exportBtn.textContent;
+  try {
+    var dl = window.claude ? await window.claude.use('downloads') : null;
+    if (!dl) { exportBtn.textContent = 'Exportação indisponível aqui'; return; }
+    var name = 'treino-bia-semana-' + new Date().toISOString().slice(0, 10) + '.csv';
+    await dl.save({ filename: name, data: buildCsv() });
+    exportBtn.textContent = '✓ Exportado';
+  } catch (e) {
+    if (e && e.code === 'declined') { exportBtn.textContent = label; return; }
+    exportBtn.textContent = 'Não foi possível exportar';
+  }
+  setTimeout(function () { exportBtn.textContent = label; }, 2500);
+});
+
+var timerBtn = document.getElementById('timer');
+var timerStart = 0;
+var timerId = null;
+function fmtTime(ms) {
+  var s = Math.floor(ms / 1000);
+  return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+}
+function tickTimer() { timerBtn.textContent = fmtTime(Date.now() - timerStart); }
+timerBtn.addEventListener('click', function () {
+  if (timerId === null) {
+    timerStart = Date.now();
+    tickTimer();
+    timerId = setInterval(tickTimer, 250);
+    timerBtn.classList.add('running');
+  } else {
+    clearInterval(timerId);
+    timerId = null;
+    timerBtn.textContent = '00:00';
+    timerBtn.classList.remove('running');
+  }
+});
+
+function show(key) {
+  tabs.forEach(function (t) { t.setAttribute('aria-selected', t.getAttribute('data-day') === key ? 'true' : 'false'); });
+  render(key);
+}
+tabs.forEach(function (t) { t.addEventListener('click', function () { show(t.getAttribute('data-day')); }); });
+show('A');
+</script>
+</body>
+</html>
